@@ -8,16 +8,17 @@ __all__ = ['VideoDataset']
 class VideoDataset:
 
     def __init__(self, args, base_attrs):
-        
+        # 로거 설정
         self.logger = logging.getLogger(args.logger_name)
+        # 비디오 특징 파일 경로 설정
         video_feats_path = os.path.join(base_attrs['data_path'], args.video_data_path, args.video_feats_path)
-        print("video_feats_path : ", video_feats_path)
-        print("os.path.abspath(video_feats_path) : ", os.path.abspath(video_feats_path))
+        # 비디오 특징 파일 존재 여부 확인
         if not os.path.exists(video_feats_path):
             raise Exception('Error: The directory of video features is empty.')
         
+        # 비디오 특징 로드
         self.feats = self.__load_feats(video_feats_path, base_attrs)
-
+        # 비디오 특징 패딩 처리
         self.feats = self.__padding_feats(args, base_attrs)
     
     def __load_feats(self, video_feats_path, base_attrs):
