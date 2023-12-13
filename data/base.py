@@ -19,9 +19,11 @@ class DataManager:
         self.logger = logging.getLogger(logger_name)
 
         # 벤치마크 데이터 설정
+        # args.dataset = 'MIntRec'
         self.benchmarks = benchmarks[args.dataset]
 
         # 데이터 경로 설정
+        # args.data_path = 'data', args.dataset = 'MIntRec'
         self.data_path = os.path.join(args.data_path, args.dataset)
 
         # 데이터 모드에 따른 라벨 리스트 설정
@@ -35,8 +37,10 @@ class DataManager:
 
         # 라벨 개수 및 각 모달의 특성 및 시퀀스 길이 설정
         args.num_labels = len(self.label_list)        
+        # self.benchmarks['feat_dims']['text'] = 768, self.benchmarks['feat_dims']['video'] = 256, self.benchmarks['feat_dims']['audio'] = 768
         args.text_feat_dim, args.video_feat_dim, args.audio_feat_dim = \
             self.benchmarks['feat_dims']['text'], self.benchmarks['feat_dims']['video'], self.benchmarks['feat_dims']['audio']
+        # self.benchmarks['max_seq_lengths']['text'] = 30, self.benchmarks['max_seq_lengths']['video'] = 230, self.benchmarks['max_seq_lengths']['audio'] = 480
         args.text_seq_len, args.video_seq_len, args.audio_seq_len = \
             self.benchmarks['max_seq_lengths']['text'], self.benchmarks['max_seq_lengths']['video'], self.benchmarks['max_seq_lengths']['audio']
 
@@ -51,7 +55,8 @@ class DataManager:
         self.mm_data = self._get_multimodal_data(args)
         # 데이터 로더 설정
         self.mm_dataloader = self._get_dataloader(args, self.mm_data)
-
+    
+    # Copliot annotation
     def _get_indexes_annotations(self, read_file_path, data_mode):
         # 라벨 매핑 생성
         label_map = {}
@@ -61,23 +66,23 @@ class DataManager:
         # 파일 읽기 및 인덱스 및 라벨 아이디 추출
         with open(read_file_path, 'r') as f:
             data = csv.reader(f, delimiter="\t")
-            indexes = []
-            label_ids = []
+            indexes = []  # 인덱스 리스트 초기화
+            label_ids = []  # 라벨 아이디 리스트 초기화
 
             for i, line in enumerate(data):
                 if i == 0:
                     continue
-                index = '_'.join([line[0], line[1], line[2]])
-                indexes.append(index)
-                
-                if data_mode == 'multi-class':
-                    label_id = label_map[line[4]]
-                else:
-                    label_id = label_map[self.benchmarks['binary_maps'][line[4]]]
-                
-                label_ids.append(label_id)
+                index = '_'.join([line[0], line[1], line[2]])  # 인덱스 생성
+                indexes.append(index)  # 인덱스 리스트에 추가
 
-        return indexes, label_ids
+                if data_mode == 'multi-class':
+                    label_id = label_map[line[4]]  # 다중 클래스 라벨 아이디 추출
+                else:
+                    label_id = label_map[self.benchmarks['binary_maps'][line[4]]]  # 이진 분류 라벨 아이디 추출
+
+                label_ids.append(label_id)  # 라벨 아이디 리스트에 추가
+
+        return indexes, label_ids  # 인덱스 리스트와 라벨 아이디 리스트 반환    
     
     def _get_unimodal_feats(self, args, attrs):
         # 각 모달 별 특성 데이터셋 가져오기
@@ -111,7 +116,9 @@ class DataManager:
         # 데이터 로더 생성
         self.logger.info('Generate Dataloader Begin...')
 
+        # args.train_batch_size = 32, args.eval_batch_size = 32, args.num_workers = 8
         train_dataloader = DataLoader(data['train'], shuffle=True, batch_size = args.train_batch_size, num_workers = args.num_workers, pin_memory = True)
+        # args.eval_batch_size = 32, args.num_workers = 8
         dev_dataloader = DataLoader(data['dev'], batch_size = args.eval_batch_size, num_workers = args.num_workers, pin_memory = True)
         test_dataloader = DataLoader(data['test'], batch_size = args.eval_batch_size, num_workers = args.num_workers, pin_memory = True)
         
