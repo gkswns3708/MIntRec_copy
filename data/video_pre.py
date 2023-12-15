@@ -13,6 +13,7 @@ class VideoDataset:
         # 비디오 특징 파일 경로 설정
         video_feats_path = os.path.join(base_attrs['data_path'], args.video_data_path, args.video_feats_path)
         # 비디오 특징 파일 존재 여부 확인
+        # 즉, 코드 자체는 이미 처리된 Feature를 이용해 학습을 진행한다.
         if not os.path.exists(video_feats_path):
             raise Exception('Error: The directory of video features is empty.')
         
